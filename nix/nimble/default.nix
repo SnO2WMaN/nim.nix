@@ -1,23 +1,16 @@
 {
   pkgs,
-  lib,
   nimPackages,
-  ...
-}: let
-  lockfile = lib.importJSON ../../flake.lock;
-  lockNimble = lockfile.nodes.nimble;
-in
-  nimPackages.buildNimPackage {
+}: {
+  nightly = nimPackages.buildNimPackage {
     pname = "nimble";
-    version = lockNimble.locked.rev;
+    version = "1df4a0dad3d24ef7aa424ebce0fe7d476e1069ee";
     src = pkgs.fetchFromGitHub {
-      inherit (lockNimble.locked) owner repo rev;
-      sha256 = lockNimble.locked.narHash;
+      owner = "nim-lang";
+      repo = "nimble";
+      rev = "1df4a0dad3d24ef7aa424ebce0fe7d476e1069ee";
+      sha256 = "sha256-4dw8FMhl+u14mMpdbkGiUv7X/q/p8FqqfHdr6WhNL7w=";
     };
-    nativeBuildInputs = with pkgs; [
-      openssl
-    ];
-    buildInputs = with pkgs; [
-      nim-unwrapped
-    ];
-  }
+    nativeBuildInputs = with pkgs; [openssl];
+  };
+}

@@ -21,26 +21,17 @@
       system: let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = with inputs; [
-          ];
         };
+        nimble-versions = pkgs.callPackages ./nix/nimble {};
       in {
-        packages.nimble = pkgs.callPackage ./nix/nimble {
-          inherit system;
+        packages = flake-utils.lib.flattenTree rec {
+          nimble-nightly = nimble-versions.nightly;
+          nimble = nimble-nightly;
         };
+
         apps.nimble = flake-utils.lib.mkApp {
           drv = self.packages.${system}.nimble;
         };
-
-        /*
-         pkgs.nimPackages.buildNimPackage {
-          pname = "nimble";
-          version = "1df4a0dad3d24ef7aa424ebce0fe7d476e1069ee";
-          src = inputs.nimble;
-          nativeBuildInputs = with pkgs; [openssl];
-          buildInputs = [];
-        };
-        */
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
