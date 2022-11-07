@@ -16,31 +16,37 @@
     nixpkgs,
     flake-utils,
     ...
-  } @ inputs: (
-    flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-        nimble-versions = pkgs.callPackages ./nix/nimble {};
-      in {
-        packages = flake-utils.lib.flattenTree rec {
-          nimble-nightly = nimble-versions.nightly;
-          nimble = nimble-nightly;
-        };
+  } @ inputs:
+    {
+      overlays.default = import ./nix/overlay.nix;
+    }
+    // (
+      flake-utils.lib.eachDefaultSystem (
+        system: let
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [
+              self.overlays.default
+            ];
+          };
+        in {
+          packages = flake-utils.lib.flattenTree rec {
+            nimble-nightly = pkgs.nimPackages.nimble;
+            nimble = nimble-nightly;
+          };
 
-        apps.nimble = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.nimble;
-        };
+          apps.nimble = flake-utils.lib.mkApp {
+            drv = self.packages.${system}.nimble;
+          };
 
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            alejandra
-            treefmt
-            nim-unwrapped
-          ];
-        };
-      }
-    )
-  );
+          devShells.default = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              alejandra
+              treefmt
+              nim-unwrapped
+            ];
+          };
+        }
+      )
+    );
 }
